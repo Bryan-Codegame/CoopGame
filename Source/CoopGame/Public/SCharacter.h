@@ -27,6 +27,9 @@ protected:
 	void Turn(float Value);
 	void LookUp(float Value);
 
+	void BeginCrouch();
+	void EndCrouch();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UCameraComponent* CameraComp;
 	
