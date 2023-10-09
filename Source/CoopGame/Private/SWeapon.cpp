@@ -5,6 +5,7 @@
 
 #include "Editor/EditorEngine.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -16,6 +17,7 @@ ASWeapon::ASWeapon()
 	RootComponent = MeshComp;
 
 	MuzzleSocketName = "MuzzleSocket";
+	TracerTargetName = "BeamEnd";
 
 }
 
@@ -46,6 +48,11 @@ void ASWeapon::Fire()
 		 * this is more expensive, but it also gives us the exact result of where we hit something. */
 		QueryParams.bTraceComplex = true;
 
+
+		//TracerEffect VFX
+		//Defines how long is the trail effect when impact with anything.
+		FVector TracerEndPoint = TraceEnd;
+		
 		FHitResult Hit;
 		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
 		{
@@ -53,20 +60,37 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			//Impact Effect
+			//Impact Effect VFX
 			if (ImpactEffect)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());	
 			}
+
+			//TracerEffect VFX
+			//Defines the end point for the trail of the bullet
+			//Defines how long is the trail effect when impact with the enemy
+			TracerEndPoint = Hit.ImpactPoint;
 			
 		}
 
 		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false,1.0f, 0, 1.0f);
 
-		//Muzzle Effect
+		//Muzzle Effect VFX
 		if(MuzzleEffect)
 		{
 			UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
+		}
+
+		//TracerEffect VFX
+		if (TracerEffect)
+		{
+			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+			UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
+			if(TracerComp)
+			{
+				//Set how long the trail Effect of the bullet when impacts with the enemy ot anything 
+				TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
+			}
 		}
 	}
 }
