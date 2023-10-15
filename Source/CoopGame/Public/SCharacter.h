@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class ASWeapon;
 
 UCLASS()
 class COOPGAME_API ASCharacter : public ACharacter
@@ -53,6 +54,20 @@ protected:
 	void BeginZoom();
 	
 	void EndZoom();
+
+	//Weapon
+	//UPROPERTY to avoid: can be destroyed during garbage collection, resulting in a stale pointer
+	UPROPERTY()
+	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ASWeapon> StarterWeaponClass;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName WeaponAttachSocketNam;
+
+	void Fire();
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
