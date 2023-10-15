@@ -43,6 +43,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon")
 	UParticleSystem* TracerEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	TSubclassOf<UCameraShakeBase> FireCamShake;
 	
 public:	
 	//Marked as virtual because other classes need to override it for their own behavior.
