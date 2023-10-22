@@ -4,3 +4,5 @@
 
 #include "CoreMinimal.h"
 
+#define SURFACE_FLESHDEFAULT		SurfaceType1
+#define SURFACE_FLEAHVULNERABLE		SurfaceType2

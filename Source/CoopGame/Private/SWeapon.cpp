@@ -3,9 +3,11 @@
 
 #include "SWeapon.h"
 
+#include "CoopGame/CoopGame.h"
 #include "Editor/EditorEngine.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -77,7 +79,10 @@ void ASWeapon::Fire()
 		 * this is more expensive, but it also gives us the exact result of where we hit something. */
 		QueryParams.bTraceComplex = true;
 
-
+		//PHYSICAL MATERIAL
+		//We need to activate this to have Flesh and Default effects spawned.
+		QueryParams.bReturnPhysicalMaterial = true;
+		
 		//TracerEffect VFX
 		//Defines how long is the trail effect when impact with anything.
 		FVector TracerEndPoint = TraceEnd;
@@ -89,10 +94,25 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			//Impact Effect VFX
-			if (ImpactEffect)
+
+			//PHYSICAL MATERIAL
+			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			UParticleSystem* SelectedEffect = nullptr;
+
+			switch (SurfaceType)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());	
+			case SURFACE_FLESHDEFAULT:
+			case SURFACE_FLEAHVULNERABLE:
+				SelectedEffect = FleshImpactEffect;
+				break;
+			default:
+				SelectedEffect = DefaultImpactEffect;
+				break;
+			}
+			//Impact Effect VFX
+			if (SelectedEffect)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());	
 			}
 
 			//TracerEffect VFX
