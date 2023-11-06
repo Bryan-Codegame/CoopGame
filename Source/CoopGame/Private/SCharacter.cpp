@@ -3,6 +3,7 @@
 
 #include "SCharacter.h"
 
+#include "SHealthComponent.h"
 #include "SWeapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -26,6 +27,8 @@ ASCharacter::ASCharacter()
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
+
+	HealthComp = CreateDefaultSubobject<USHealthComponent>(TEXT("HealthComp"));
 	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
@@ -55,6 +58,8 @@ void ASCharacter::BeginPlay()
 		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketNam);
 	}
+
+	HealthComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthUpdated);
 }
 
 void ASCharacter::MoveForward(float Value)
@@ -122,6 +127,24 @@ void ASCharacter::StopFire()
 		CurrentWeapon->StopFire();
 	}
 }
+
+void ASCharacter::OnHealthUpdated(USHealthComponent* HealthCompOverride, float Health, float HealthDelta,
+	const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (Health <= 0.0f && !bDied)
+	{
+		// Die!
+		bDied = true;
+
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		DetachFromControllerPendingDestroy();
+
+		SetLifeSpan(10.0f);
+	}
+}
+
 
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)

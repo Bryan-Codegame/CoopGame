@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
+class USHealthComponent;
 
 UCLASS()
 class COOPGAME_API ASCharacter : public ACharacter
@@ -36,6 +37,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USpringArmComponent* SpringArmComp;
+
+	UPROPERTY()
+	USHealthComponent* HealthComp;
 	
 	/* Pawn died previously */
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -69,6 +73,11 @@ protected:
 	void StartFire();
 
 	void StopFire();
+
+	//To avoid confusion, the owner of this function is this class, not the HealthComponent.
+	UFUNCTION()
+	void OnHealthUpdated(USHealthComponent* HealthCompOverride, float Health, float HealthDelta,
+		const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	
 public:	
 	// Called every frame
