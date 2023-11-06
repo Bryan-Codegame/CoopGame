@@ -5,6 +5,8 @@
 
 #include "SWeapon.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "CoopGame/CoopGame.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -22,6 +24,8 @@ ASCharacter::ASCharacter()
 	/*This is kind of reserved for AI, but the underlying code of Unreal
 	 *still checks if we are actually allowed to crouch*/
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
