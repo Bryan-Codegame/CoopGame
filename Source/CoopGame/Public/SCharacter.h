@@ -76,7 +76,7 @@ protected:
 
 	//To avoid confusion, the owner of this function is this class, not the HealthComponent.
 	UFUNCTION()
-	void OnHealthUpdated(USHealthComponent* HealthCompOverride, float Health, float HealthDelta,
+	void OnHealthUpdated(USHealthComponent* OwningHealthComp, float Health, float HealthDelta,
 		const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	
 public:	
