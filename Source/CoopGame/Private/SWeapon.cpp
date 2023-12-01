@@ -29,6 +29,8 @@ ASWeapon::ASWeapon()
 
 	//Bullets per minute
 	RateOfFire = 600;
+
+	SetReplicates(true);
 }
 
 void ASWeapon::BeginPlay()

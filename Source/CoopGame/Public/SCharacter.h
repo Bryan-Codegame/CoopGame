@@ -19,7 +19,7 @@ class COOPGAME_API ASCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASCharacter();
-
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -61,7 +61,7 @@ protected:
 
 	//Weapon
 	//UPROPERTY to avoid: can be destroyed during garbage collection, resulting in a stale pointer
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
