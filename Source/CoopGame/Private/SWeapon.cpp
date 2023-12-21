@@ -6,6 +6,7 @@
 #include "CoopGame/CoopGame.h"
 #include "Editor/EditorEngine.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
@@ -74,14 +75,12 @@ void ASWeapon::PlayFireEffects(FVector TraceEnd)
 
 void ASWeapon::Fire()
 {
-	AActor* MyOwner = GetOwner();
-
-
 	if(!HasAuthority())
 	{
 		ServerFire();
 	}
 	
+	AActor* MyOwner = GetOwner();
 	if(MyOwner)
 	{
 		FVector EyeLocation;
@@ -156,8 +155,18 @@ void ASWeapon::Fire()
 
 		PlayFireEffects(TracerEndPoint);
 
+		if(HasAuthority())
+		{
+			HitScanTrace.TraceTo = TracerEndPoint;
+		}
+
 		LastFireTime = GetWorld()->TimeSeconds;
 	}
+}
+
+void ASWeapon::OnRep_HitScanTrace()
+{
+	PlayFireEffects(HitScanTrace.TraceTo);
 }
 
 void ASWeapon::ServerFire_Implementation()
@@ -182,3 +191,10 @@ void ASWeapon::StopFire()
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 }
 
+
+void ASWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ASWeapon, HitScanTrace, COND_SkipOwner);
+}
