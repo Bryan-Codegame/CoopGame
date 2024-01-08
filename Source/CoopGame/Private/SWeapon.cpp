@@ -73,6 +73,33 @@ void ASWeapon::PlayFireEffects(FVector TraceEnd)
 	}
 }
 
+void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+{
+	//PHYSICAL MATERIAL
+	UParticleSystem* SelectedEffect = nullptr;
+
+	switch (SurfaceType)
+	{
+	case SURFACE_FLESHDEFAULT:
+	case SURFACE_FLESHVULNERABLE:
+		SelectedEffect = FleshImpactEffect;
+		break;
+	default:
+		SelectedEffect = DefaultImpactEffect;
+		break;
+	}
+	//Impact Effect VFX
+	if (SelectedEffect)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		FVector ShotDirection = ImpactPoint - MuzzleLocation;
+
+		ShotDirection.Normalize();
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ShotDirection.Rotation());	
+	}
+}
+
 void ASWeapon::Fire()
 {
 	if(!HasAuthority())
@@ -104,6 +131,8 @@ void ASWeapon::Fire()
 		//TracerEffect VFX
 		//Defines how long is the trail effect when impact with anything.
 		FVector TracerEndPoint = TraceEnd;
+
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
 		
 		FHitResult Hit;
 		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
@@ -111,7 +140,7 @@ void ASWeapon::Fire()
 			//Blocking hit! Process damage
 			AActor* HitActor = Hit.GetActor();
 			
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
 			//HEADSHOT Bonus Damage
 			float ActualDamage = BaseDamage;
@@ -121,26 +150,9 @@ void ASWeapon::Fire()
 			}
 			
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+
+			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);
 			
-			//PHYSICAL MATERIAL
-			UParticleSystem* SelectedEffect = nullptr;
-
-			switch (SurfaceType)
-			{
-			case SURFACE_FLESHDEFAULT:
-			case SURFACE_FLESHVULNERABLE:
-				SelectedEffect = FleshImpactEffect;
-				break;
-			default:
-				SelectedEffect = DefaultImpactEffect;
-				break;
-			}
-			//Impact Effect VFX
-			if (SelectedEffect)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());	
-			}
-
 			//TracerEffect VFX
 			//Defines the end point for the trail of the bullet
 			//Defines how long is the trail effect when impact with the enemy
@@ -158,6 +170,7 @@ void ASWeapon::Fire()
 		if(HasAuthority())
 		{
 			HitScanTrace.TraceTo = TracerEndPoint;
+			HitScanTrace.SurfaceType = SurfaceType;
 		}
 
 		LastFireTime = GetWorld()->TimeSeconds;
@@ -167,6 +180,8 @@ void ASWeapon::Fire()
 void ASWeapon::OnRep_HitScanTrace()
 {
 	PlayFireEffects(HitScanTrace.TraceTo);
+
+	PlayImpactEffects(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
 }
 
 void ASWeapon::ServerFire_Implementation()
