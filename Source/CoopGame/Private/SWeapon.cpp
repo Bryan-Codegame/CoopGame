@@ -32,6 +32,10 @@ ASWeapon::ASWeapon()
 	RateOfFire = 600;
 
 	SetReplicates(true);
+
+	//Net Performance
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
 }
 
 void ASWeapon::BeginPlay()
