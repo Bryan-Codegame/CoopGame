@@ -20,19 +20,22 @@ void USHealthComponent::BeginPlay()
 
 	AActor* MyOwner = GetOwner();
 
-	if(GetOwnerRole() == ROLE_Authority)
+	if(MyOwner && MyOwner->HasAuthority())
 	{
-		if(MyOwner)
-		{
-			MyOwner->OnTakeAnyDamage.AddDynamic(this, &USHealthComponent::HandleTakeAnyDamage);
-		}	
+		MyOwner->OnTakeAnyDamage.AddDynamic(this, &USHealthComponent::HandleTakeAnyDamage);
 	}
 
 	Health = DefaultHealth;
 }
 
+void USHealthComponent::OnRep_Health(float OldHealth)
+{
+	float Damage = Health - OldHealth;
+	OnHealthChanged.Broadcast(this, Health, Damage, nullptr, nullptr, nullptr);
+}
+
 void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatedBy, AActor* DamageCauser)
+                                            AController* InstigatedBy, AActor* DamageCauser)
 {
 	if(Damage <= 0.0f)
 		return;

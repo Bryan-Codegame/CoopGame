@@ -23,8 +23,11 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category="Health Component")
+	UPROPERTY(ReplicatedUsing=OnRep_Health, BlueprintReadOnly, Category="Health Component")
 	float Health;
+
+	UFUNCTION()
+	void OnRep_Health(float OldHealth);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Health Component")
 	float DefaultHealth;
