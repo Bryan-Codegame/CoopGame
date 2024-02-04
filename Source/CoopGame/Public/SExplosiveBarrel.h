@@ -23,6 +23,7 @@ public:
 	ASExplosiveBarrel();
 
 protected:
+	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USHealthComponent* HealthComponent;
@@ -37,7 +38,11 @@ protected:
 	void OnHealthChange(USHealthComponent* OwningHealthComp, float Health, float HealthDelta,
 		const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
+	UPROPERTY(ReplicatedUsing=OnRep_Exploded)
 	bool bExploded;
+
+	UFUNCTION()
+	void OnRep_Exploded();
 
 	UPROPERTY(EditDefaultsOnly, Category="Explosion")
 	float ExplosionIMpulse;
